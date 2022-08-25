@@ -1,19 +1,19 @@
 ﻿using Lesson_2.Db;
-using Lesson_2.Entity;
 using System.Collections.Generic;
 using System;
+using Lesson_2.Entity;
 using System.Linq;
 
 namespace Lesson_2.Repository
 {
-    internal sealed class PersonRepository : IPersonRepository
+    internal sealed class UsersRepository : IUsersRepository
     {
-        private readonly PersonDbContext _context;
-        public PersonRepository(PersonDbContext context)
+        private readonly UsersDbContext _context;
+        public UsersRepository(UsersDbContext context)
         {
             _context = context;
         }
-        public bool Add(Person entity)
+        public bool Add(Users entity)
         {
             try
             {
@@ -26,17 +26,17 @@ namespace Lesson_2.Repository
             }
             return true;
         }
-        public IReadOnlyList<Person> Get()
+        public IReadOnlyList<Users> Get()
         {
-            return _context.Person.Where(x => x.IsDeleted == false).ToList();
+           return _context.Users.Where(x => x.IsDeleted == false).ToList();
         }
-        public bool Update(Person entity)
+        public bool Update(Users entity)
         {
             return Commit();
         }
         public bool Delete(int id)
         {
-            Person entity = _context.Person.Find(id);
+            Users entity = _context.Users.Find(id);
             entity.IsDeleted = true;
             return Commit();
         }

@@ -1,54 +1,50 @@
 ﻿using Lesson_2.Entity;
+using Lesson_2.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Lesson_2.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class PersonController : Controller
+    public class UsersController : Controller
     {
-        private readonly ILogger<PersonController> _logger;
-        private readonly Person _person;
-
-        public PersonController(ILogger<PersonController> logger, Person person)
+        private readonly Users _users;
+        private readonly ILogger<UsersController> _logger;
+        public UsersController(Users users, ILogger<UsersController> logger)
         {
-            _person = person;
+            _users = users;
             _logger = logger;
         }
-        [HttpGet("api/persons/{id}")]
+        [HttpGet("api/users/{id}")]
         public IActionResult Get(int id)
         {
             return Ok();
         }
-        [HttpGet("api/persons/search?searchTerm={term}")]
+        [HttpGet("api/users/search?searchTerm={term}")]
         public IActionResult Get(string term)
         {
             return Ok();
         }
-        [HttpGet("api/persons/?skip={5}&take={10}")]
+        [HttpGet("api/users/?skip={5}&take={10}")]
         public IActionResult Post(int skip, int take)
         {
             return Ok();
         }
-        [HttpPost("api/persons")]
+        [HttpPost("api/users")]
         public IActionResult Post()
         {
             return Ok();
         }
-        [HttpPut("api/persons")]
+        [HttpPut("api/users")]
         public IActionResult Put()
         {
             return Ok();
         }
-        [HttpDelete("api/persons/{id}")]
+        [HttpDelete("api/users/{id}")]
         public IActionResult Delete(int id)
         {
             return Ok();
         }
-
     }
 }

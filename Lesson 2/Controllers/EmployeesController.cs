@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Lesson_2.Entity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,14 @@ namespace Lesson_2.Controllers
     [Route("[controller]")]
     public class EmployeesController : ControllerBase
     {
+        private readonly ILogger<EmployeesController> _logger;
+        private readonly Employees _employees;
+
+        public EmployeesController(ILogger<EmployeesController> logger, Employees employees)
+        {
+            _employees = employees;
+            _logger = logger;
+        }
         [HttpGet("api/employees/get")]
         public IActionResult Get()
         {

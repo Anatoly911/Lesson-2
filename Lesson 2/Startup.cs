@@ -1,3 +1,4 @@
+using Lesson_2.Db;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -19,11 +20,10 @@ namespace Lesson_2
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-        }
+        }   
 
         public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+      
         public void ConfigureServices(IServiceCollection services)
         {
 
@@ -32,6 +32,13 @@ namespace Lesson_2
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lesson_2", Version = "v1" });
             });
+        }
+        public static IServiceCollection AddSqlRepositories(this IServiceCollection container)
+        {
+            container.AddSingleton<UsersDbContext>();
+            container.AddSingleton<PersonDbContext>();
+            container.AddSingleton<EmployeesDbContext>();
+            return container;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
