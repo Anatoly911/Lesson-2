@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Lesson_2.Repository
 {
-    public interface IPersonRepository : IEntitiesRepository<Person>
+    public interface IEmployeesRepository : IEntitiesRepository<Employees>
     {
         
     }

@@ -6,14 +6,14 @@ using System.Linq;
 
 namespace Lesson_2.Repository
 {
-    internal sealed class PersonRepository : IPersonRepository
+    internal sealed class EmployeesRepository : IEmployeesRepository
     {
-        private readonly PersonDbContext _context;
-        public PersonRepository(PersonDbContext context)
+        private readonly EmployeesDbContext _context;
+        public EmployeesRepository(EmployeesDbContext context)
         {
             _context = context;
         }
-        public bool Add(Person entity)
+        public bool Add(Employees entity)
         {
             try
             {
@@ -26,17 +26,17 @@ namespace Lesson_2.Repository
             }
             return true;
         }
-        public IReadOnlyList<Person> Get()
+        public IReadOnlyList<Employees> Get()
         {
-            return _context.Person.Where(x => x.IsDeleted == false).ToList();
+            return _context.Employees.Where(x => x.IsDeleted == false).ToList();
         }
-        public bool Update(Person entity)
+        public bool Update(Employees entity)
         {
             return Commit();
         }
         public bool Delete(int id)
         {
-            Person entity = _context.Person.Find(id);
+            Employees entity = _context.Employees.Find(id);
             entity.IsDeleted = true;
             return Commit();
         }
