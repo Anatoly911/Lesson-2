@@ -1,23 +1,104 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using AutoMapper;
+using Lesson_2.Models;
+using Lesson_2.Repositories;
+using Lesson_2.Request.Invoice;
+using Lesson_2.Responses.Invoice;
+using Lesson_2.Validation.Request.Invoice;
+using Lesson_2.Validation.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace Lesson_2.Controllers
 {
+    [Route("api/invoice")]
+    [Authorize]
     [ApiController]
-    [Route("[controller]")]
-    public class InvoicesController : ControllerBase
+    public class InvoiceController : ControllerBase
     {
-        [HttpGet("api/invoices/get")]
-        public IActionResult Get()
+        private IInvoiceRepository _repository;
+        private IMapper _mapper;
+        private IGetInvoiceByIdValidator _getInvoiceByIdValidator;
+        private ICreateInvoiceValidator _createInvoiceValidator;
+        private IDeleteInvoiceValidator _deleteInvoiceValidator;
+        public InvoiceController(
+            IInvoiceRepository repository,
+            IMapper mapper,
+            IGetInvoiceByIdValidator getInvoiceByIdValidator,
+            ICreateInvoiceValidator createInvoiceValidator,
+            IDeleteInvoiceValidator deleteInvoiceValidator)
         {
+            _repository = repository;
+            _mapper = mapper;
+            _getInvoiceByIdValidator = getInvoiceByIdValidator;
+            _createInvoiceValidator = createInvoiceValidator;
+            _deleteInvoiceValidator = deleteInvoiceValidator;
+        }
+
+        [HttpGet("get/all")]
+        public async Task<IActionResult> GetAll()
+        {
+            var invoices = await _repository.GetAll();
+            var response = new GetAllInvoicesResponse()
+            {
+                Invoices = new List<InvoiceDto>()
+            };
+
+            foreach (Invoice invoice in invoices)
+            {
+                response.Invoices.Add(_mapper.Map<InvoiceDto>(invoice));
+            }
+
+            return Ok(response);
+        }
+
+        [HttpGet("get/{id}")]
+        public async Task<IActionResult> GetInvoiceById([FromRoute] long id)
+        {
+            var request = new GetInvoiceByIdRequest { Id = id };
+            var validation = new OperationResult<GetInvoiceByIdRequest>(_getInvoiceByIdValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            var invoice = await _repository.GetById(request);
+            var response = new GetInvoiceByIdResponse();
+
+            response.Invoice = _mapper.Map<InvoiceDto>(invoice);
+
+            return Ok(response);
+        }
+
+        [HttpPost("create/contract/{contractId}/task/{taskId}")]
+        public async Task<IActionResult> CreateInvoice([FromRoute] long contractId, [FromRoute] long taskId)
+        {
+            var request = new CreateInvoiceRequest { ContractId = contractId, TaskId = taskId };
+            var validation = new OperationResult<CreateInvoiceRequest>(_createInvoiceValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _repository.Create(request);
             return Ok();
         }
-        [HttpPut("api/invoices/update")]
-        public IActionResult Put()
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteInvoice([FromRoute] long id)
         {
+            var request = new DeleteInvoiceRequest { Id = id };
+            var validation = new OperationResult<DeleteInvoiceRequest>(_deleteInvoiceValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _repository.Delete(request);
             return Ok();
         }
     }

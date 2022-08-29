@@ -1,88 +1,241 @@
-﻿using Lesson_2.Entity;
-using Lesson_2.Services;
-using Lesson_2.Token;
+﻿using AutoMapper;
+using Lesson_2.Repositories;
+using Lesson_2.Repository;
+using Lesson_2.Request.Employee;
+using Lesson_2.Request.Task;
+using Lesson_2.Responses.Employee;
+using Lesson_2.Responses.Task;
+using Lesson_2.Validation.Request.Employee;
+using Lesson_2.Validation.Request.Task;
+using Lesson_2.Validation.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
+using Model = Lesson_2.Models;
 
 namespace Lesson_2.Controllers
 {
+    [Route("api/employee")]
+    [Authorize]
     [ApiController]
-    [Route("[controller]")]
-    public class EmployeesController : ControllerBase
+    public class EmployeeController : ControllerBase
     {
-        private readonly ILogger<EmployeesController> _logger;
-        private readonly IEmployeesService _employeesService;
+        private IEmployeeRepository _employeeRepository;
+        private ITaskRepository _taskRepository;
+        private IMapper _mapper;
+        private IGetEmployeeByIdValidator _getEmployeeByIdValidator;
+        private ICreateEmployeeValidator _getCreateEmployeeValidator;
+        private IDeleteEmployeeValidator _deleteEmployeeValidator;
+        private IGetTaskByIdValidator _getTaskByIdValidator;
+        private ICreateTaskValidator _createTaskValidator;
+        private IDeleteTaskValidator _deleteTaskValidator;
+        private ICloseTaskValidator _closeTaskValidator;
+        private IAddEmployeeToTaskValidator _addEmployeeToTaskValidator;
+        private IRemoveEmployeeFromTaskValidator _removeEmployeeFromTaskValidator;
 
-        public EmployeesController(ILogger<EmployeesController> logger, IEmployeesService employeesService)
+        public EmployeeController(
+            IEmployeeRepository employeeRepository,
+            ITaskRepository taskRepository,
+            IMapper mapper,
+            IGetEmployeeByIdValidator getEmployeeByIdValidator,
+            ICreateEmployeeValidator getCreateEmployeeValidator,
+            IDeleteEmployeeValidator deleteEmployeeValidator,
+            IGetTaskByIdValidator getTaskByIdValidator,
+            ICreateTaskValidator createTaskValidator,
+            IDeleteTaskValidator deleteTaskValidator,
+            ICloseTaskValidator closeTaskValidator,
+            IAddEmployeeToTaskValidator addEmployeeToTaskValidator,
+            IRemoveEmployeeFromTaskValidator removeEmployeeFromTaskValidator)
         {
-            _employeesService = employeesService;
-            _logger = logger;
+            _employeeRepository = employeeRepository;
+            _taskRepository = taskRepository;
+            _mapper = mapper;
+            _getEmployeeByIdValidator = getEmployeeByIdValidator;
+            _getCreateEmployeeValidator = getCreateEmployeeValidator;
+            _deleteEmployeeValidator = deleteEmployeeValidator;
+            _getTaskByIdValidator = getTaskByIdValidator;
+            _createTaskValidator = createTaskValidator;
+            _deleteTaskValidator = deleteTaskValidator;
+            _closeTaskValidator = closeTaskValidator;
+            _addEmployeeToTaskValidator = addEmployeeToTaskValidator;
+            _removeEmployeeFromTaskValidator = removeEmployeeFromTaskValidator;
         }
-        [AllowAnonymous]
-        [HttpPost("authenticate")]
-        public IActionResult Authenticate([FromQuery] string user, string password)
+
+        [HttpGet("get/all")]
+        public async Task<IActionResult> GetAll()
         {
-            TokenResponse token = _employeesService.Authenticate(user, password);
-            if (token is null)
+            var employees = await _employeeRepository.GetAll();
+            var response = new GetAllEmployeesResponse()
             {
-                return BadRequest(new
-                {
-                    message = "Username or password is incorrect"
-                });
-            }
-            SetTokenCookie(token.RefreshToken);
-            return Ok(token);
-        }
-        [Authorize]
-        [HttpPost("refresh-token")]
-        public IActionResult Refresh()
-        {
-            string oldRefreshToken = Request.Cookies["refreshToken"];
-            string newRefreshToken = _employeesService.RefreshToken(oldRefreshToken);
-            if (string.IsNullOrWhiteSpace(newRefreshToken))
-            {
-                return Unauthorized(new { message = "Invalid token" });
-            }
-            SetTokenCookie(newRefreshToken);
-            return Ok(newRefreshToken);
-        }
-        private void SetTokenCookie(string token)
-        {
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTime.UtcNow.AddDays(7)
+                Employees = new List<EmployeeDto>()
             };
-            Response.Cookies.Append("refreshToken", token, cookieOptions);
+
+            foreach (Model.Employee employee in employees)
+            {
+                response.Employees.Add(_mapper.Map<EmployeeDto>(employee));
+            }
+
+            return Ok(response);
         }
-        [HttpGet("api/employees/get")]
-        public IActionResult Get()
+
+        [HttpGet("get/{id}")]
+        public async Task<IActionResult> GetById([FromRoute] long id)
         {
+            var request = new GetEmployeeByIdRequest { Id = id };
+            var validation = new OperationResult<GetEmployeeByIdRequest>(_getEmployeeByIdValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            var employee = await _employeeRepository.GetById(request);
+            var response = new GetEmployeeByIdResponse();
+
+            response.Employee = _mapper.Map<EmployeeDto>(employee);
+
+            return Ok(response);
+        }
+
+        [HttpPost("create/{name}")]
+        public async Task<IActionResult> Create([FromRoute] string name)
+        {
+            var request = new CreateEmployeeRequest { Name = name };
+            var validation = new OperationResult<CreateEmployeeRequest>(_getCreateEmployeeValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+
+            }
+            await _employeeRepository.Create(request);
             return Ok();
         }
-        [HttpGet("api/employees/get/{id}")]
-        public IActionResult Get(int agentId)
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete([FromRoute] long id)
         {
+            var request = new DeleteEmployeeRequest { Id = id };
+            var validation = new OperationResult<DeleteEmployeeRequest>(_deleteEmployeeValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _employeeRepository.Delete(request);
             return Ok();
         }
-        [HttpPost("api/employees/register")]
-        public IActionResult Post()
+
+        [HttpGet("get/task/all")]
+        public async Task<IActionResult> GetAllTasks()
         {
+            var tasks = await _taskRepository.GetAll();
+            var response = new GetAllTasksResponse()
+            {
+                Tasks = new List<TaskDto>()
+            };
+
+            foreach (Model.Task task in tasks)
+            {
+                response.Tasks.Add(_mapper.Map<TaskDto>(task));
+            }
+
+            return Ok(response);
+        }
+
+        [HttpGet("get/task/{id}")]
+        public async Task<IActionResult> GetTaskById([FromRoute] long id)
+        {
+            var request = new GetTaskByIdRequest { Id = id };
+            var validation = new OperationResult<GetTaskByIdRequest>(_getTaskByIdValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            var task = await _taskRepository.GetById(request);
+            var response = new GetTaskByIdResponse();
+
+            response.Task = _mapper.Map<TaskDto>(task);
+
+            return Ok(response);
+        }
+
+        [HttpPost("create/task/{price}")]
+        public async Task<IActionResult> CreateTask([FromRoute] long price)
+        {
+            var request = new CreateTaskRequest { PricePerHour = price };
+            var validation = new OperationResult<CreateTaskRequest>(_createTaskValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _taskRepository.Create(request);
             return Ok();
         }
-        [HttpPut("api/employees/update/{id}")]
-        public IActionResult Put(int agentId)
+
+        [HttpDelete("delete/task/{id}")]
+        public async Task<IActionResult> DeleteTask([FromRoute] long id)
         {
+            var request = new DeleteTaskRequest { Id = id };
+            var validation = new OperationResult<DeleteTaskRequest>(_deleteTaskValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _taskRepository.Delete(request);
             return Ok();
         }
-        [HttpDelete("api/employees/delete/{id}")]
-        public IActionResult Delete(int agentId)
+
+        [HttpPut("update/task/{id}/employee/add/{employeeId}")]
+        public async Task<IActionResult> AddEmployeeToTask([FromRoute] long employeeId, [FromRoute] long id)
         {
+            var request = new AddEmployeeToTaskRequest { TaskId = id, EmployeeId = employeeId };
+            var validation = new OperationResult<AddEmployeeToTaskRequest>(_addEmployeeToTaskValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _taskRepository.AddEmployeeToTask(request);
+            return Ok();
+        }
+
+        [HttpPut("update/task/{id}/employee/remove/{employeeId}")]
+        public async Task<IActionResult> RemoveEmployeeFromTask([FromRoute] long employeeId, [FromRoute] long id)
+        {
+            var request = new RemoveEmployeeFromTaskRequest { TaskId = id, EmployeeId = employeeId };
+            var validation = new OperationResult<RemoveEmployeeFromTaskRequest>(_removeEmployeeFromTaskValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _taskRepository.RemoveEmployeeFromTask(request);
+            return Ok();
+        }
+
+        [HttpPut("update/task/{id}/close")]
+        public async Task<IActionResult> CloseTask([FromRoute] long id)
+        {
+            var request = new CloseTaskRequest { Id = id };
+            var validation = new OperationResult<CloseTaskRequest>(_closeTaskValidator.ValidateEntity(request));
+
+            if (!validation.Succeed)
+            {
+                return BadRequest(validation);
+            }
+
+            await _taskRepository.CloseTask(request);
             return Ok();
         }
     }
