@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASP.NET Core Веб Приложение", "Lesson 2\ASP.NET Core Веб Приложение.csproj", "{589D5D59-ECDC-4A01-9C75-3F284449FD2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lesson 2", "Lesson 2\Lesson 2.csproj", "{589D5D59-ECDC-4A01-9C75-3F284449FD2A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
