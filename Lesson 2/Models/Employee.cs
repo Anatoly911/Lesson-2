@@ -14,12 +14,12 @@
             get => _name;
             set => _name = value;
         }
-        internal Employee(long id, string name)
+        public Employee(long id, string name)
         {
             _id = id;
             _name = name;
         }
-        internal Employee() { }
+        public Employee() { }
     }
     public class EmployeeFactory
     {
