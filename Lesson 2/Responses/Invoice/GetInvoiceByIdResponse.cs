@@ -3,5 +3,9 @@
     public class GetInvoiceByIdResponse
     {
         public InvoiceDto Invoice { get; set; }
+        public GetInvoiceByIdResponse(InvoiceDto Invoice)
+        {
+            this.Invoice = Invoice;
+        }
     }
 }

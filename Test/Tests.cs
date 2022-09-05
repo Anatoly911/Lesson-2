@@ -14,7 +14,7 @@ namespace Test
 {
     public class UnitTest
     {
-        IEmployeeRepository _employeeRepository;
+        /*IEmployeeRepository _employeeRepository;
         private Mock<IEmployeeRepository> mock;
         public UnitTest()
         {
@@ -27,14 +27,14 @@ namespace Test
             Mock<IEmployeeRepository> paymentRepositoryMock = new Mock<IEmployeeRepository>();
             paymentRepositoryMock.Setup(mock => mock.GetAll()).Returns(new List<Employee>()
             {
-                new EmployeeDto() { Id = 1, Name = "Vasya"},
+                new Employee() { Id = 1, Name = "Vasya"},
             });
             IEmployeeRepository paymentTypeCollectionManager = new EmployeeRepository(paymentRepositoryMock.Object);
             paymentTypeCollectionManager.GetAll();
             paymentTypeCollectionManager.GetAll();
             paymentTypeCollectionManager.GetAll();
             paymentRepositoryMock.Verify(mock => mock.GetAll(), Times.Once);
-        }/*
+        }*/
         [Fact]
         public void CachePaymentType_CollectionManager_Data_Test()
         {
@@ -66,7 +66,7 @@ namespace Test
             IPaymentTypeCollectionManager paymentTypeCollectionManager = new PaymentTypeCollectionManager(paymentRepositoryMock.Object);
             IReadOnlyList<PaymentType> data_one = paymentTypeCollectionManager.GetAll();
             Assert.True(paymentTypeCollectionManager.ContainsType(uniqueId));
-        }*/
+        }
     }
 }
 

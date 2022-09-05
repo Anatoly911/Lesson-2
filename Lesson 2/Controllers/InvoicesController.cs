@@ -8,6 +8,7 @@ using Lesson_2.Validation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
 namespace Lesson_2.Controllers
@@ -40,7 +41,7 @@ namespace Lesson_2.Controllers
         public async Task<IActionResult> GetAll()
         {
             var invoices = await _repository.GetAll();
-            var response = new GetAllInvoicesResponse()
+            var response = new GetAllInvoicesResponse()  // Не знаю что подставить
             {
                 Invoices = new List<InvoiceDto>()
             };
@@ -54,9 +55,9 @@ namespace Lesson_2.Controllers
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetInvoiceById([FromRoute] long id)
+        public async Task<IActionResult> GetInvoiceById([FromRoute] long id, InvoiceDto Invoice)
         {
-            var request = new GetInvoiceByIdRequest { Id = id };
+            var request = new GetInvoiceByIdRequest(id) { Id = id };
             var validation = new OperationResult<GetInvoiceByIdRequest>(_getInvoiceByIdValidator.ValidateEntity(request));
 
             if (!validation.Succeed)
@@ -65,7 +66,7 @@ namespace Lesson_2.Controllers
             }
 
             var invoice = await _repository.GetById(request);
-            var response = new GetInvoiceByIdResponse();
+            var response = new GetInvoiceByIdResponse(Invoice);
 
             response.Invoice = _mapper.Map<InvoiceDto>(invoice);
 
@@ -73,9 +74,9 @@ namespace Lesson_2.Controllers
         }
 
         [HttpPost("create/contract/{contractId}/task/{taskId}")]
-        public async Task<IActionResult> CreateInvoice([FromRoute] long contractId, [FromRoute] long taskId)
+        public async Task<IActionResult> CreateInvoice([FromRoute] long contractId, [FromRoute] long taskId, long ContractId)
         {
-            var request = new CreateInvoiceRequest { ContractId = contractId, TaskId = taskId };
+            var request = new CreateInvoiceRequest(ContractId) { ContractId = contractId, TaskId = taskId };
             var validation = new OperationResult<CreateInvoiceRequest>(_createInvoiceValidator.ValidateEntity(request));
 
             if (!validation.Succeed)
@@ -90,7 +91,7 @@ namespace Lesson_2.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteInvoice([FromRoute] long id)
         {
-            var request = new DeleteInvoiceRequest { Id = id };
+            var request = new DeleteInvoiceRequest(id) { Id = id };
             var validation = new OperationResult<DeleteInvoiceRequest>(_deleteInvoiceValidator.ValidateEntity(request));
 
             if (!validation.Succeed)
